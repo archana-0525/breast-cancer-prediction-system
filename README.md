@@ -206,34 +206,28 @@ streamlit run app.py
 ## Project Structure
 
 breast_cancer_detection/
+    app.py
 
-├── app.py
+    xgboost_breast_cancer_model.pkl
 
-├── xgboost_breast_cancer_model.pkl
+    breast_cancer_dataframe.csv
 
-├── breast_cancer_dataframe.csv
+    cleaned_breast_cancer_dataset.csv
 
-├── cleaned_breast_cancer_dataset.csv
+    prediction_history.csv
+    
+    requirements.txt
+    
+    README.md
+    
+    screenshots/
+    login_page.png
+    prediction_page.png
+    result_page.png
+    history_page.png
+    chatbot_page.png
 
-├── prediction_history.csv
-
-├── requirements.txt
-
-├── README.md
-
-├── screenshots/
-
-│ ├── login_page.png
-
-│ ├── prediction_page.png
-
-│ ├── result_page.png
-
-│ ├── history_page.png
-
-│ └── chatbot_page.png
-
-└── breast_cancer_model_training.ipynb
+ breast_cancer_model_training.ipynb
 
 ---
 
