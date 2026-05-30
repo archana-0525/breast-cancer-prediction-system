@@ -1,0 +1,3 @@
+Timestamp,User,Patient Name / ID,Age,Sample ID,Prediction,Benign Probability,Malignant Probability,Confidence
+30-05-2026 11:16:06 AM,abcd,Joe,40,BC-1234,Benign - Low Risk,92.8,7.2,92.8
+30-05-2026 11:19:04 AM,abcd,Joe,40,BC-1234,Malignant - High Risk,22.989999771118164,77.01000213623047,77.01000213623047
