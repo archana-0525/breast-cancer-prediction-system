@@ -611,8 +611,8 @@ def chatbot_response(question):
         return "Concavity measures inward curves on the tumor boundary. Concave points are important for classification."
     elif "confidence" in q or "probability" in q:
         return "Confidence score shows how strongly the model supports its predicted class based on the entered measurements."
-    elif "sample id" in q or "age" in q or "patient" in q:
-        return "Patient name, age, and sample ID are record fields only. They do not affect model prediction."
+    elif "age" in q or "patient" in q:
+        return "Patient name and age are record fields only. They do not affect model prediction."
     elif "features" in q or "input" in q:
         return "Simple Mode uses mean radius, mean texture, mean perimeter, mean area, mean smoothness, mean compactness, mean concavity, mean concave points, worst radius, and worst concave points."
     return "I can help with benign/malignant meaning, risk levels, feature meanings, confidence score, recommendations, history, and reports."
@@ -644,13 +644,11 @@ st.markdown("<div class='subtitle'>Analyze tumor characteristics and classify th
 if page == "Prediction":
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.subheader("Patient Information")
-    pcol1, pcol2, pcol3 = st.columns(3)
+    pcol1, pcol2 = st.columns(2)
     with pcol1:
-        patient_name = st.text_input("Patient Name / ID", placeholder="Example: Patient-001")
+        patient_name = st.text_input("Patient Name", placeholder="Example: Patient-001")
     with pcol2:
         patient_age = st.number_input("Age", min_value=1, max_value=120, value=40)
-    with pcol3:
-        sample_id = st.text_input("Sample ID", placeholder="Example: BC-1001")
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
@@ -756,9 +754,8 @@ if page == "Prediction":
 
         st.write("### Case Summary")
         case_summary = {
-            "Patient Name / ID": patient_name if patient_name else "Not provided",
+            "Patient Name": patient_name if patient_name else "Not provided",
             "Age": patient_age,
-            "Sample ID": sample_id if sample_id else "Not provided",
             "Prediction": prediction_text,
             "Confidence": f"{confidence:.2f}%",
             "Prediction Time": timestamp
@@ -773,9 +770,8 @@ if page == "Prediction":
         history_row = {
             "Timestamp": timestamp,
             "User": st.session_state.username,
-            "Patient Name / ID": patient_name if patient_name else "Not provided",
+            "Patient Name": patient_name if patient_name else "Not provided",
             "Age": patient_age,
-            "Sample ID": sample_id if sample_id else "Not provided",
             "Prediction": prediction_text,
             "Benign Probability": round(benign_prob, 2),
             "Malignant Probability": round(malignant_prob, 2),
