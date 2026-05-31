@@ -881,14 +881,6 @@ elif page == "Feedback":
         save_feedback(feedback_row)
         st.success("⭐ Thank you for your feedback!")
 
-    st.write("### Why Feedback Matters")
-    st.markdown("""
-    <div class='info-box'>
-    Feedback can help improve the application interface, prediction explanation, chatbot responses,
-    report format, and future feature development.
-    </div>
-    """, unsafe_allow_html=True)
-
     if FEEDBACK_PATH.exists():
         with st.expander("View Recent Feedback"):
             feedback_df = pd.read_csv(FEEDBACK_PATH)
