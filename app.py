@@ -833,35 +833,53 @@ elif page == "Feedback":
     st.write("### Feedback Form")
 
     fcol1, fcol2 = st.columns(2)
+
     with fcol1:
-        feedback_name = st.text_input("Name / User ID", value=st.session_state.username)
+        feedback_name = st.text_input(
+            "Name / User ID",
+            value=st.session_state.username
+        )
+
     with fcol2:
         feedback_category = st.selectbox(
             "Feedback Category",
-            ["User Interface", "Prediction Experience", "Chatbot", "Report Download", "Feature Suggestion", "Other"]
+            [
+                "User Interface",
+                "Prediction Experience",
+                "Chatbot",
+                "Report Download",
+                "Feature Suggestion",
+                "Other"
+            ]
         )
 
-    rating = st.slider("Overall Rating", 1, 5, 5)
+    rating = st.radio(
+        "Overall Rating",
+        ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+        horizontal=True
+    )
+
+    rating_value = len(rating)
+
     feedback_text = st.text_area(
-        "Write your feedback",
-        placeholder="Example: The app is easy to use, but I would like to see more explanation about the prediction result.",
+        "Additional Comments (Optional)",
+        placeholder="Optional: Share suggestions, improvements, or comments...",
         height=150
     )
 
     if st.button("Submit Feedback", use_container_width=True):
-        if feedback_text.strip() == "":
-            st.error("Please enter your feedback before submitting.")
-        else:
-            feedback_row = {
-                "Timestamp": datetime.now().strftime("%d-%m-%Y %I:%M:%S %p"),
-                "User": st.session_state.username,
-                "Name / User ID": feedback_name if feedback_name else "Not provided",
-                "Category": feedback_category,
-                "Rating": rating,
-                "Feedback": feedback_text.strip()
-            }
-            save_feedback(feedback_row)
-            st.success("Thank you! Your feedback has been submitted successfully.")
+
+        feedback_row = {
+            "Timestamp": datetime.now().strftime("%d-%m-%Y %I:%M:%S %p"),
+            "User": st.session_state.username,
+            "Name / User ID": feedback_name if feedback_name else "Not provided",
+            "Category": feedback_category,
+            "Rating": rating_value,
+            "Feedback": feedback_text.strip() if feedback_text.strip() else "No written feedback"
+        }
+
+        save_feedback(feedback_row)
+        st.success("⭐ Thank you for your feedback!")
 
     st.write("### Why Feedback Matters")
     st.markdown("""
@@ -875,6 +893,7 @@ elif page == "Feedback":
         with st.expander("View Recent Feedback"):
             feedback_df = pd.read_csv(FEEDBACK_PATH)
             st.dataframe(feedback_df.tail(10), use_container_width=True)
+
             st.download_button(
                 "Download Feedback CSV",
                 feedback_df.to_csv(index=False).encode("utf-8"),
