@@ -123,6 +123,68 @@ input, textarea {
     background-color: #ffffff !important;
 }
 
+/* Theme-safe buttons, dropdowns, and form controls */
+.stButton > button,
+.stDownloadButton > button,
+button[kind="primary"],
+button[kind="secondary"],
+[data-testid="baseButton-secondary"],
+[data-testid="baseButton-primary"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #ec407a !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+}
+
+.stButton > button:hover,
+.stDownloadButton > button:hover,
+[data-testid="baseButton-secondary"]:hover,
+[data-testid="baseButton-primary"]:hover {
+    background-color: #fce4ec !important;
+    color: #0d47a1 !important;
+    border-color: #ec407a !important;
+}
+
+/* Selectbox and dropdown visibility in both browser/Streamlit themes */
+[data-baseweb="select"] > div,
+[data-baseweb="select"] span,
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+[data-baseweb="menu"] li,
+div[role="listbox"],
+div[role="option"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+/* Disabled input text visibility */
+input:disabled,
+textarea:disabled {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    background-color: #f8fafc !important;
+    opacity: 1 !important;
+}
+
+/* Feedback section */
+.feedback-box {
+    background: linear-gradient(135deg, #ffffff 0%, #fff3f8 100%);
+    padding: 26px;
+    border-radius: 20px;
+    border: 1px solid rgba(236,64,122,0.22);
+    box-shadow: 0px 6px 20px rgba(0,0,0,0.08);
+}
+
+.feedback-box h3 {
+    color: #ad1457 !important;
+}
+
+.feedback-box p {
+    color: #263238 !important;
+    line-height: 1.7;
+}
+
 /* Result boxes */
 .result-benign {
     background: linear-gradient(135deg, #c8e6c9, #e8f5e9);
@@ -278,6 +340,7 @@ DATA_PATH = Path("breast_cancer_dataframe.csv")
 CLEAN_DATA_PATH = Path("cleaned_breast_cancer_dataset.csv")
 HISTORY_PATH = Path("prediction_history.csv")
 USER_PATH = Path("users.csv")
+FEEDBACK_PATH = Path("feedback.csv")
 
 
 # =========================
@@ -468,6 +531,15 @@ def save_prediction_history(row):
         final_df = new_df
     final_df.to_csv(HISTORY_PATH, index=False)
 
+def save_feedback(row):
+    new_df = pd.DataFrame([row])
+    if FEEDBACK_PATH.exists():
+        old_df = pd.read_csv(FEEDBACK_PATH)
+        final_df = pd.concat([old_df, new_df], ignore_index=True)
+    else:
+        final_df = new_df
+    final_df.to_csv(FEEDBACK_PATH, index=False)
+
 def generate_pdf_report(case_summary, prediction_text, confidence, recommendations):
     if not REPORTLAB_AVAILABLE:
         return None
@@ -551,7 +623,7 @@ def chatbot_response(question):
 st.sidebar.title("Navigation")
 page = st.sidebar.radio(
     "Go to",
-    ["About", "Prediction", "History", "Feature Guide", "Chatbot"]
+    ["Prediction", "History", "Feature Guide", "Chatbot", "Feedback", "About"]
 )
 st.sidebar.markdown("---")
 st.sidebar.write(f"Logged in as: **{st.session_state.username}**")
@@ -744,6 +816,73 @@ elif page == "Feature Guide":
     for feature, meaning in feature_info.items():
         st.markdown(f"<div class='info-box'><b>{feature}</b><br>{meaning}</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================
+# Feedback Page
+# =========================
+elif page == "Feedback":
+    st.markdown("""
+    <div class='feedback-box'>
+        <h3>Share Your Feedback</h3>
+        <p>
+        Your feedback helps improve the Breast Cancer Prediction System. You can share your experience,
+        report any issue, or suggest new features that can make the application more useful and user-friendly.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("### Feedback Form")
+
+    fcol1, fcol2 = st.columns(2)
+    with fcol1:
+        feedback_name = st.text_input("Name / User ID", value=st.session_state.username)
+    with fcol2:
+        feedback_category = st.selectbox(
+            "Feedback Category",
+            ["User Interface", "Prediction Experience", "Chatbot", "Report Download", "Feature Suggestion", "Other"]
+        )
+
+    rating = st.slider("Overall Rating", 1, 5, 5)
+    feedback_text = st.text_area(
+        "Write your feedback",
+        placeholder="Example: The app is easy to use, but I would like to see more explanation about the prediction result.",
+        height=150
+    )
+
+    if st.button("Submit Feedback", use_container_width=True):
+        if feedback_text.strip() == "":
+            st.error("Please enter your feedback before submitting.")
+        else:
+            feedback_row = {
+                "Timestamp": datetime.now().strftime("%d-%m-%Y %I:%M:%S %p"),
+                "User": st.session_state.username,
+                "Name / User ID": feedback_name if feedback_name else "Not provided",
+                "Category": feedback_category,
+                "Rating": rating,
+                "Feedback": feedback_text.strip()
+            }
+            save_feedback(feedback_row)
+            st.success("Thank you! Your feedback has been submitted successfully.")
+
+    st.write("### Why Feedback Matters")
+    st.markdown("""
+    <div class='info-box'>
+    Feedback can help improve the application interface, prediction explanation, chatbot responses,
+    report format, and future feature development.
+    </div>
+    """, unsafe_allow_html=True)
+
+    if FEEDBACK_PATH.exists():
+        with st.expander("View Recent Feedback"):
+            feedback_df = pd.read_csv(FEEDBACK_PATH)
+            st.dataframe(feedback_df.tail(10), use_container_width=True)
+            st.download_button(
+                "Download Feedback CSV",
+                feedback_df.to_csv(index=False).encode("utf-8"),
+                "feedback.csv",
+                "text/csv",
+                use_container_width=True
+            )
 
 # =========================
 # About Page
