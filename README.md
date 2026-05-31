@@ -12,9 +12,12 @@ The project combines Machine Learning, Data Analysis, Data Visualization, Model 
 
 ### Authentication & User Management
 
-* User Login System
+* User Registration System
+* Secure Login System
+* Password Validation Rules
 * Session Management
 * Logout Functionality
+* User Activity Tracking
 
 ### Machine Learning Prediction
 
@@ -23,6 +26,7 @@ The project combines Machine Learning, Data Analysis, Data Visualization, Model 
 * Confidence Score Calculation
 * Risk Assessment System
 * Probability Analysis
+* Real-Time Prediction Results
 
 ### Data Visualization
 
@@ -30,14 +34,16 @@ The project combines Machine Learning, Data Analysis, Data Visualization, Model 
 * Tumor Feature Comparison
 * Radar Chart Visualization
 * Risk Meter Visualization
+* Feature Pattern Analysis
 
 ### Reporting & Storage
 
 * Prediction History Tracking
-* CSV Report Download
+* Downloadable Prediction History (CSV)
 * PDF Report Generation
 * Timestamp Recording
-* Patient Information Storage
+* Patient Name / ID Management
+* Prediction Record Storage
 
 ### User Assistance
 
@@ -45,6 +51,16 @@ The project combines Machine Learning, Data Analysis, Data Visualization, Model 
 * Interactive Healthcare Chatbot
 * Risk Recommendations
 * Clinical Follow-Up Suggestions
+* Tumor Feature Explanations
+
+### Feedback & Continuous Improvement
+
+* User Feedback Collection System
+* Star-Based Rating System
+* Feedback Category Selection
+* Optional User Comments
+* Feedback Storage and Analysis
+* Future Model Improvement Support
 
 ### User Interface
 
@@ -52,6 +68,16 @@ The project combines Machine Learning, Data Analysis, Data Visualization, Model 
 * Responsive Layout
 * Clean Navigation System
 * Healthcare-Focused Design
+* Light & Dark Theme Compatibility
+* Interactive Forms and Controls
+
+### Deployment & Documentation
+
+* GitHub Repository Integration
+* Streamlit Cloud Deployment
+* Comprehensive Project Documentation
+* End-to-End Machine Learning Workflow
+* Reproducible Project Structure
 
 ---
 
