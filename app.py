@@ -958,16 +958,6 @@ elif page == "About":
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class='about-section'>
-        <h3>Project Workflow</h3>
-        <p>
-        The complete workflow includes dataset loading, data cleaning, exploratory data analysis, model training,
-        model evaluation, model saving using Pickle, Streamlit application development, prediction report generation,
-        GitHub repository management, and cloud deployment using Streamlit Community Cloud.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
 
 # =========================
 # History Page
