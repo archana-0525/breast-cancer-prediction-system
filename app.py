@@ -270,6 +270,15 @@ input, textarea {
 </style>
 """, unsafe_allow_html=True)
 
+# =========================
+# File Paths
+# =========================
+MODEL_PATH = Path("xgboost_breast_cancer_model.pkl")
+DATA_PATH = Path("breast_cancer_dataframe.csv")
+CLEAN_DATA_PATH = Path("cleaned_breast_cancer_dataset.csv")
+HISTORY_PATH = Path("prediction_history.csv")
+USER_PATH = Path("users.csv")
+
 
 # =========================
 # Authentication Helpers
@@ -342,8 +351,12 @@ def login_page():
 
         st.markdown("""
         <div class='password-rule'>
-        <b>Password rule:</b> Minimum 6 characters, at least 1 uppercase letter, and at least 1 special character.
-        Example: <b>Archana@123</b>
+        <b>Password Requirements</b><br>
+        • Minimum 6 characters<br>
+        • At least 1 uppercase letter (A-Z)<br>
+        • At least 1 special character (@, #, $, %, !, etc.)<br>
+        • Lowercase letters and digits are allowed<br><br>
+        <b>Example:</b> Secure@123
         </div>
         """, unsafe_allow_html=True)
 
@@ -383,15 +396,6 @@ def login_page():
 if not st.session_state.logged_in:
     login_page()
     st.stop()
-
-# =========================
-# File Paths
-# =========================
-MODEL_PATH = Path("xgboost_breast_cancer_model.pkl")
-DATA_PATH = Path("breast_cancer_dataframe.csv")
-CLEAN_DATA_PATH = Path("cleaned_breast_cancer_dataset.csv")
-HISTORY_PATH = Path("prediction_history.csv")
-USER_PATH = Path("users.csv")
 
 # =========================
 # Load Model
