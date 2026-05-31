@@ -646,7 +646,10 @@ if page == "Prediction":
     st.subheader("Patient Information")
     pcol1, pcol2 = st.columns(2)
     with pcol1:
-        patient_name = st.text_input("Patient Name", placeholder="Example: Patient-001")
+        patient_name = st.text_input(
+    "Patient Name / ID",
+    placeholder="Example: Joe or PT-1001"
+)
     with pcol2:
         patient_age = st.number_input("Age", min_value=1, max_value=120, value=40)
     st.markdown("</div>", unsafe_allow_html=True)
