@@ -5,6 +5,8 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 from io import BytesIO
+import hashlib
+import re
 
 try:
     import matplotlib.pyplot as plt
@@ -212,8 +214,113 @@ input, textarea {
 .chat-answer * {
     color: #37474f !important;
 }
+
+/* Professional About section */
+.about-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #fff3f8 100%);
+    padding: 30px;
+    border-radius: 22px;
+    border: 1px solid rgba(236,64,122,0.18);
+    box-shadow: 0px 6px 22px rgba(0,0,0,0.08);
+    margin-bottom: 22px;
+}
+
+.about-hero h2 {
+    color: #0d47a1 !important;
+    margin-bottom: 14px;
+}
+
+.about-hero p {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #263238 !important;
+}
+
+.about-section {
+    background-color: rgba(255,255,255,0.96);
+    padding: 22px;
+    border-radius: 18px;
+    border-left: 6px solid #ec407a;
+    margin-top: 18px;
+    box-shadow: 0px 4px 16px rgba(0,0,0,0.06);
+}
+
+.about-section h3 {
+    color: #ad1457 !important;
+    margin-bottom: 10px;
+}
+
+.about-section p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #263238 !important;
+}
+
+.password-rule {
+    background-color: #f8fafc;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border-left: 5px solid #ec407a;
+    color: #263238 !important;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+
+# =========================
+# Authentication Helpers
+# =========================
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def is_valid_password(password):
+    """
+    Password rules:
+    - Minimum 6 characters
+    - At least 1 uppercase letter
+    - At least 1 special character
+    - Lowercase letters and digits are allowed
+    """
+    if len(password) < 6:
+        return False, "Password must be at least 6 characters long."
+    if not re.search(r"[A-Z]", password):
+        return False, "Password must contain at least one uppercase letter."
+    if not re.search(r"[^A-Za-z0-9]", password):
+        return False, "Password must contain at least one special character such as @, #, $, %, or !."
+    return True, "Valid password."
+
+def load_users():
+    if USER_PATH.exists():
+        return pd.read_csv(USER_PATH)
+    return pd.DataFrame(columns=["username", "password_hash", "created_at"])
+
+def save_user(username, password):
+    users_df = load_users()
+    new_user = pd.DataFrame([{
+        "username": username.strip().lower(),
+        "password_hash": hash_password(password),
+        "created_at": datetime.now().strftime("%d-%m-%Y %I:%M:%S %p")
+    }])
+    users_df = pd.concat([users_df, new_user], ignore_index=True)
+    users_df.to_csv(USER_PATH, index=False)
+
+def authenticate_user(username, password):
+    users_df = load_users()
+    username_key = username.strip().lower()
+
+    if users_df.empty or username_key not in users_df["username"].astype(str).values:
+        return False, "Username not found. Please create an account first."
+
+    stored_hash = users_df.loc[users_df["username"] == username_key, "password_hash"].iloc[0]
+    if hash_password(password) == stored_hash:
+        return True, "Login successful."
+
+    return False, "Invalid password. Please enter the correct password."
+
 
 # =========================
 # Login System
@@ -221,21 +328,56 @@ input, textarea {
 def login_page():
     st.markdown("<div class='main-title'>🎗️ Breast Cancer Prediction System</div>", unsafe_allow_html=True)
     st.markdown("<div class='subtitle'>Secure AI-powered tumor classification platform</div>", unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([1, 1.25, 1])
     with col2:
         st.markdown("<div class='login-card'>", unsafe_allow_html=True)
-        st.subheader("Secure Login")
-        st.write("Enter any username and password to access the dashboard.")
-        username = st.text_input("Username", placeholder="Enter username")
+        st.subheader("Secure Account Access")
+        st.write("Login with your registered credentials or create a new account to access the prediction dashboard.")
+
+        auth_mode = st.radio("Choose Option", ["Login", "Create Account"], horizontal=True)
+
+        username = st.text_input("Username", placeholder="Example: archana")
         password = st.text_input("Password", type="password", placeholder="Enter password")
-        if st.button("Login to Dashboard", use_container_width=True):
-            if username.strip() != "" and password.strip() != "":
-                st.session_state.logged_in = True
-                st.session_state.username = username.strip()
-                st.success("Login successful")
-                st.rerun()
-            else:
-                st.error("Please enter both username and password")
+
+        st.markdown("""
+        <div class='password-rule'>
+        <b>Password rule:</b> Minimum 6 characters, at least 1 uppercase letter, and at least 1 special character.
+        Example: <b>Archana@123</b>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if auth_mode == "Login":
+            if st.button("Login to Dashboard", use_container_width=True):
+                if username.strip() == "" or password.strip() == "":
+                    st.error("Please enter both username and password.")
+                else:
+                    success, message = authenticate_user(username, password)
+                    if success:
+                        st.session_state.logged_in = True
+                        st.session_state.username = username.strip()
+                        st.success(message)
+                        st.rerun()
+                    else:
+                        st.error(message)
+
+        else:
+            if st.button("Create Account", use_container_width=True):
+                if username.strip() == "" or password.strip() == "":
+                    st.error("Please enter both username and password.")
+                else:
+                    valid, message = is_valid_password(password)
+                    users_df = load_users()
+                    username_key = username.strip().lower()
+
+                    if not valid:
+                        st.error(message)
+                    elif username_key in users_df["username"].astype(str).values:
+                        st.error("Username already exists. Please login instead.")
+                    else:
+                        save_user(username, password)
+                        st.success("Account created successfully. Now login using the same credentials.")
+
         st.markdown("</div>", unsafe_allow_html=True)
 
 if not st.session_state.logged_in:
@@ -249,6 +391,7 @@ MODEL_PATH = Path("xgboost_breast_cancer_model.pkl")
 DATA_PATH = Path("breast_cancer_dataframe.csv")
 CLEAN_DATA_PATH = Path("cleaned_breast_cancer_dataset.csv")
 HISTORY_PATH = Path("prediction_history.csv")
+USER_PATH = Path("users.csv")
 
 # =========================
 # Load Model
@@ -602,23 +745,68 @@ elif page == "Feature Guide":
 # About Page
 # =========================
 elif page == "About":
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.subheader("About Breast Cancer Prediction System")
-    st.write("""
-    This application analyzes breast tumor characteristics and predicts whether the tumor pattern is classified as benign or malignant.
-    It provides a clean interface for entering tumor measurement values and viewing the predicted risk category with confidence score.
-    """)
-    for badge in ["Secure Login", "Simple Input Mode", "Advanced Input Mode", "Risk Classification", "Confidence Score", "Feature Guide", "Chatbot", "PDF Report", "Prediction History"]:
-        st.markdown(f"<span class='badge'>{badge}</span>", unsafe_allow_html=True)
-    st.write("### Application Workflow")
-    st.write("""
-    1. Login to the dashboard  
-    2. Enter patient and tumor feature values  
-    3. Submit values for prediction  
-    4. View risk level, tumor classification, confidence score, and visual analysis  
-    5. Download CSV/PDF report and review prediction history  
-    """)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class='about-hero'>
+        <h2>About Breast Cancer Prediction System</h2>
+        <p>
+        The Breast Cancer Prediction System is designed as a modern healthcare-focused machine learning application
+        that helps analyze breast tumor measurement values and classify the tumor pattern as benign or malignant.
+        Instead of presenting only a technical model output, the application provides a complete user experience with
+        prediction results, risk level, confidence score, visual analysis, report generation, and chatbot assistance.
+        </p>
+        <p>
+        The system uses tumor cell measurement features such as radius, texture, perimeter, area, smoothness,
+        compactness, concavity, and concave points. These values are processed by a trained XGBoost classification
+        model to generate a prediction and probability-based risk assessment.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class='about-section'>
+        <h3>Purpose of the Application</h3>
+        <p>
+        This application was built to demonstrate how machine learning can be applied in the healthcare domain
+        for intelligent tumor classification. It converts raw tumor measurement values into a clear prediction result
+        and presents the result in a way that is understandable for users through risk labels, visual charts,
+        and recommended next steps.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class='about-section'>
+        <h3>How the System Works</h3>
+        <p>
+        Users enter patient details and tumor measurement values through the prediction dashboard. The trained model
+        analyzes the entered features and predicts whether the tumor pattern is more likely to be benign or malignant.
+        The application then displays the confidence score, probability analysis, risk meter, case summary, and
+        downloadable PDF or CSV reports.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class='about-section'>
+        <h3>Application Capabilities</h3>
+        <p>
+        The system includes secure account access, simple and advanced input modes, prediction history tracking,
+        PDF report generation, CSV export, tumor feature comparison, radar chart visualization, feature explanation,
+        and an interactive chatbot that helps users understand medical terms and prediction results.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class='about-section'>
+        <h3>Project Workflow</h3>
+        <p>
+        The complete workflow includes dataset loading, data cleaning, exploratory data analysis, model training,
+        model evaluation, model saving using Pickle, Streamlit application development, prediction report generation,
+        GitHub repository management, and cloud deployment using Streamlit Community Cloud.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # =========================
 # History Page
