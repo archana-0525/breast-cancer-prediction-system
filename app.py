@@ -346,7 +346,7 @@ def login_page():
 
         auth_mode = st.radio("Choose Option", ["Login", "Create Account"], horizontal=True)
 
-        username = st.text_input("Username", placeholder="Example: archana")
+        username = st.text_input("Username", placeholder="Example: Secure")
         password = st.text_input("Password", type="password", placeholder="Enter password")
 
         st.markdown("""
