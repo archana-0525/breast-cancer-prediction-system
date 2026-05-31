@@ -602,7 +602,7 @@ def chatbot_response(question):
     elif "feature importance" in q:
         return "Feature importance shows which tumor measurements influenced the model more strongly during prediction. Higher importance features usually contribute more to classification."
     elif "history" in q:
-        return "Prediction History stores previous prediction records with timestamp, patient/sample ID, result, and confidence."
+        return "Prediction History stores previous prediction records with timestamp, patient name or ID, age, result, and confidence."
     elif "mean radius" in q or "radius" in q:
         return "Mean radius is the average distance from the center of the tumor cell nucleus to its boundary points."
     elif "texture" in q:
@@ -647,9 +647,9 @@ if page == "Prediction":
     pcol1, pcol2 = st.columns(2)
     with pcol1:
         patient_name = st.text_input(
-    "Patient Name / ID",
-    placeholder="Example: Joe or PT-1001"
-)
+            "Patient Name / ID",
+            placeholder="Example: Ramya or PT-1001"
+        )
     with pcol2:
         patient_age = st.number_input("Age", min_value=1, max_value=120, value=40)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -757,7 +757,7 @@ if page == "Prediction":
 
         st.write("### Case Summary")
         case_summary = {
-            "Patient Name": patient_name if patient_name else "Not provided",
+            "Patient Name / ID": patient_name if patient_name else "Not provided",
             "Age": patient_age,
             "Prediction": prediction_text,
             "Confidence": f"{confidence:.2f}%",
@@ -773,7 +773,7 @@ if page == "Prediction":
         history_row = {
             "Timestamp": timestamp,
             "User": st.session_state.username,
-            "Patient Name": patient_name if patient_name else "Not provided",
+            "Patient Name / ID": patient_name if patient_name else "Not provided",
             "Age": patient_age,
             "Prediction": prediction_text,
             "Benign Probability": round(benign_prob, 2),
@@ -977,6 +977,25 @@ elif page == "History":
     st.subheader("Prediction History")
     if HISTORY_PATH.exists():
         history_df = pd.read_csv(HISTORY_PATH)
+
+        # Clean old history columns if previous app versions stored Sample ID or duplicate Patient Name columns
+        if "Patient Name / ID" not in history_df.columns and "Patient Name" in history_df.columns:
+            history_df["Patient Name / ID"] = history_df["Patient Name"]
+        elif "Patient Name / ID" in history_df.columns and "Patient Name" in history_df.columns:
+            history_df["Patient Name / ID"] = history_df["Patient Name / ID"].replace("None", pd.NA).fillna(history_df["Patient Name"])
+
+        columns_to_remove = [col for col in ["Sample ID", "Patient Name"] if col in history_df.columns]
+        if columns_to_remove:
+            history_df = history_df.drop(columns=columns_to_remove)
+            history_df.to_csv(HISTORY_PATH, index=False)
+
+        final_history_columns = [
+            "Timestamp", "User", "Patient Name / ID", "Age", "Prediction",
+            "Benign Probability", "Malignant Probability", "Confidence"
+        ]
+        available_columns = [col for col in final_history_columns if col in history_df.columns]
+        history_df = history_df[available_columns]
+
         st.dataframe(history_df.tail(50), use_container_width=True)
         st.download_button("Download Full History CSV", history_df.to_csv(index=False).encode("utf-8"), "prediction_history.csv", "text/csv", use_container_width=True)
         if st.button("Clear Prediction History", use_container_width=True):
